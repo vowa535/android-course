@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Вайбкодинг: Android для новичков</title>
+
+<!-- PWA мета-теги -->
+<meta name="description" content="Пошаговый курс по созданию Android-приложений с помощью ИИ — без опыта кодинга">
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ВайбКурс">
+
+<!-- Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Apple Touch Icon (встроенный SVG как data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%230a0a0f'/%3E%3Cdefs%3E%3CradialGradient id='g' cx='30%25' cy='30%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%237c3aed' stop-opacity='0.9'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4' stop-opacity='0.5'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='192' height='192' rx='40' fill='url(%23g)'/%3E%3Crect x='64' y='44' width='64' height='104' rx='10' fill='none' stroke='%23c4b5fd' stroke-width='4'/%3E%3Crect x='76' y='56' width='40' height='56' rx='4' fill='%231e1e2e'/%3E%3Crect x='80' y='62' width='20' height='3' rx='1.5' fill='%237c3aed'/%3E%3Crect x='80' y='70' width='28' height='3' rx='1.5' fill='%2306b6d4'/%3E%3Crect x='80' y='78' width='16' height='3' rx='1.5' fill='%237c3aed'/%3E%3Crect x='80' y='86' width='24' height='3' rx='1.5' fill='%2306b6d4'/%3E%3Crect x='80' y='94' width='18' height='3' rx='1.5' fill='%23a78bfa'/%3E%3Ccircle cx='96' cy='130' r='6' fill='none' stroke='%23c4b5fd' stroke-width='3'/%3E%3Ctext x='96' y='160' font-size='22' text-anchor='middle' fill='%23f59e0b'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
+
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #1e1e2e;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --accent3: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: rgba(124,58,237,0.3);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Onest', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* INSTALL BANNER */
+  #install-banner {
+    display: none;
+    position: fixed;
+    bottom: calc(1rem + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(22, 22, 31, 0.95);
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    width: calc(100% - 2rem);
+    max-width: 420px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.1);
+    animation: slideUp 0.4s ease;
+  }
+  #install-banner.show { display: flex; align-items: center; gap: 1rem; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .install-icon { font-size: 2rem; flex-shrink: 0; }
+  .install-text { flex: 1; }
+  .install-text strong { display: block; font-family: 'Unbounded', sans-serif; font-size: 0.8rem; color: var(--text); margin-bottom: 0.2rem; }
+  .install-text span { font-size: 0.75rem; color: var(--muted); }
+  .install-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .install-btn:hover { background: #6d28d9; }
+  .install-close {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 1.2rem; padding: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  /* OFFLINE BADGE */
+  #offline-badge {
+    display: none;
+    position: fixed;
+    top: calc(1rem + var(--safe-top));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.4);
+    color: #fca5a5;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+  #offline-badge.show { display: block; }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    overflow: hidden;
+  }
+
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: drift 8s ease-in-out infinite;
+  }
+  .orb1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(124,58,237,0.25), transparent); top: -100px; left: -150px; }
+  .orb2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(6,182,212,0.2), transparent); bottom: -100px; right: -100px; animation-delay: -3s; }
+  .orb3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(245,158,11,0.15), transparent); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -6s; }
+
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(30px, -20px); }
+    66% { transform: translate(-20px, 30px); }
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+  .tag {
+    display: inline-block;
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.4);
+    color: #a78bfa;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(2.5rem, 8vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #c4b5fd, #7c3aed, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .stat { text-align: center; }
+  .stat-n {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #c4b5fd, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-l { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    animation: bounce 2s ease-in-out infinite;
+  }
+  .scroll-hint::after {
+    content: '';
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--muted), transparent);
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  section { padding: 5rem 1.5rem; position: relative; z-index: 1; }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .section-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.5rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .section-desc { color: var(--muted); max-width: 580px; margin-bottom: 3rem; }
+
+  .vibe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .vibe-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .vibe-card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-4px); }
+  .vibe-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .vibe-card:hover::before { opacity: 1; }
+  .vibe-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .vibe-card h3 { font-family: 'Unbounded', sans-serif; font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .vibe-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+  .tools-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .tool-badge {
+    background: rgba(6,182,212,0.08);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #67e8f9;
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .tool-badge:hover { background: rgba(6,182,212,0.15); }
+  .tool-badge.ai { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.25); color: #c4b5fd; }
+  .tool-badge.ai:hover { background: rgba(124,58,237,0.15); }
+
+  .modules { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .module {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .module:hover { border-color: rgba(124,58,237,0.35); }
+
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.75rem 2rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .module-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 900;
+    color: var(--accent);
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.2);
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .module-meta { flex: 1; }
+  .module-title { font-family: 'Unbounded', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .module-sub { font-size: 0.8rem; color: var(--muted); }
+
+  .module-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .badge-beginner { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+  .badge-practice { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+  .badge-project { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+
+  .module-arrow { color: var(--muted); font-size: 1.2rem; transition: transform 0.3s, color 0.3s; flex-shrink: 0; }
+  .module.open .module-arrow { transform: rotate(180deg); color: var(--accent); }
+
+  .module-body {
+    display: none;
+    padding: 0 2rem 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .module.open .module-body { display: block; }
+
+  .steps-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; padding-top: 1.5rem; }
+
+  .step { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; margin-top: 0.45rem; }
+  .step-text { font-size: 0.92rem; color: var(--muted); line-height: 1.55; }
+  .step-text strong { color: var(--text); font-weight: 500; }
+
+  .step-code {
+    margin-top: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: #a78bfa;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.5;
+  }
+
+  .prompt-block {
+    margin-top: 1rem;
+    background: rgba(124,58,237,0.06);
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+  }
+  .prompt-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a78bfa;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .prompt-text { font-size: 0.88rem; color: #c4b5fd; line-height: 1.6; font-style: italic; }
+
+  .tip-block {
+    margin-top: 1rem;
+    background: rgba(6,182,212,0.05);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 8px 8px 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: #67e8f9;
+  }
+
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2), transparent);
+    border-radius: 2px;
+  }
+
+  .tl-item { position: relative; padding: 0 0 2.5rem 2rem; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -5px; top: 6px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 12px var(--glow);
+  }
+  .tl-week { font-family: 'Unbounded', sans-serif; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem; }
+  .tl-title { font-family: 'Unbounded', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .tl-desc { font-size: 0.88rem; color: var(--muted); }
+
+  .project-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(6,182,212,0.08));
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .project-card::after { content: '🚀'; position: absolute; right: 2rem; bottom: 1rem; font-size: 5rem; opacity: 0.08; }
+
+  .project-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+  .pf { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.88rem; color: var(--muted); }
+  .pf-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
+  }
+  footer span { color: #a78bfa; }
+
+  @media (max-width: 600px) {
+    .module-header { padding: 1.25rem; gap: 0.75rem; }
+    .module-body { padding: 0 1.25rem 1.5rem; }
+    .module-badge { display: none; }
+    .project-card { padding: 1.5rem; }
+    h2 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- OFFLINE BADGE -->
+<div id="offline-badge">📡 Офлайн-режим</div>
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <div class="install-icon">📱</div>
+  <div class="install-text">
+    <strong>Установить как приложение</strong>
+    <span>Работает офлайн · Быстрый доступ</span>
+  </div>
+  <button class="install-btn" onclick="installApp()">Установить</button>
+  <button class="install-close" onclick="closeBanner()">✕</button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+  <div class="hero-content">
+    <div class="tag">✦ Полный курс с нуля</div>
+    <h1>Вайбкодинг<br><span class="gradient-text">Android Apps</span></h1>
+    <p>Создавай настоящие приложения с помощью ИИ — без многолетнего изучения программирования. Просто описывай идею, и код пишется сам.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">7</div><div class="stat-l">модулей</div></div>
+      <div class="stat"><div class="stat-n">4–6</div><div class="stat-l">недель</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">реальных приложения</div></div>
+      <div class="stat"><div class="stat-n">0</div><div class="stat-l">опыта кодинга</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint">SCROLL</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHAT IS VIBECODING -->
+<section>
+  <div class="container">
+    <div class="section-label">// Введение</div>
+    <h2>Что такое вайбкодинг?</h2>
+    <p class="section-desc">Вайбкодинг — это подход к разработке, где ты описываешь что хочешь получить на обычном языке, а ИИ генерирует код. Твоя роль — архитектор идей.</p>
+    <div class="vibe-grid">
+      <div class="vibe-card"><div class="vibe-icon">🧠</div><h3>Ты — идейный вдохновитель</h3><p>Ты описываешь задачу, формулируешь требования и направляешь ИИ. Понимание концепций важнее синтаксиса.</p></div>
+      <div class="vibe-card"><div class="vibe-icon">🤖</div><h3>ИИ — твой напарник-разработчик</h3><p>ChatGPT, Claude, Gemini пишут код, исправляют ошибки, объясняют что происходит и предлагают улучшения.</p></div>
+      <div class="vibe-card"><div class="vibe-icon">🔁</div><h3>Итерация — главный навык</h3><p>Не нужно писать идеально с первого раза. Запустил → посмотрел → уточнил запрос → улучшил. Это и есть процесс.</p></div>
+      <div class="vibe-card"><div class="vibe-icon">⚡</div><h3>Скорость × 10</h3><p>То, что раньше занимало месяцы обучения, теперь занимает недели. Первое рабочее приложение — уже на первой неделе.</p></div>
+    </div>
+    <div class="section-label" style="margin-top:2rem">// Инструменты курса</div>
+    <p style="color:var(--muted);margin-bottom:1rem;font-size:0.9rem">ИИ-ассистенты:</p>
+    <div class="tools-row">
+      <span class="tool-badge ai">🤖 ChatGPT / Claude</span>
+      <span class="tool-badge ai">✨ Gemini</span>
+      <span class="tool-badge ai">💻 GitHub Copilot</span>
+      <span class="tool-badge ai">🧩 Cursor IDE</span>
+    </div>
+    <p style="color:var(--muted);margin-bottom:1rem;font-size:0.9rem;margin-top:1rem">Среды разработки:</p>
+    <div class="tools-row">
+      <span class="tool-badge">🟢 Android Studio</span>
+      <span class="tool-badge">📱 Kotlin</span>
+      <span class="tool-badge">🎨 Jetpack Compose</span>
+      <span class="tool-badge">🔥 Firebase</span>
+      <span class="tool-badge">📦 Gradle</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MODULES -->
+<section>
+  <div class="container">
+    <div class="section-label">// Программа курса</div>
+    <h2>7 модулей к твоему первому приложению</h2>
+    <p class="section-desc">Каждый модуль — это практика. Никаких скучных лекций без результата.</p>
+    <div class="modules" id="modules">
+
+      <div class="module open" onclick="toggle(this)">
+        <div class="module-header">
+          <div class="module-num">01</div>
+          <div class="module-meta"><div class="module-title">Среда и первый запуск</div><div class="module-sub">Настройка инструментов · 2–3 дня</div></div>
+          <span class="module-badge badge-beginner">Старт</span>
+          <div class="module-arrow">▾</div>
+        </div>
+        <div class="module-body">
+          <ul class="steps-list">
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Установи Android Studio</strong> — скачай с developer.android.com. При установке выбери все компоненты по умолчанию. Настрой AVD (эмулятор) — виртуальный телефон на твоём компьютере.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Создай первый проект</strong> через File → New Project → Empty Activity. Язык: Kotlin. Минимальный SDK: API 26 (Android 8+). Название: «MyFirstApp».</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Запусти на эмуляторе</strong> — нажми зелёную кнопку ▶. Увидишь «Hello World!» на экране телефона. Поздравляю — это уже работающее Android-приложение!</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Спроси ИИ объяснить структуру проекта</strong><div class="prompt-block"><div class="prompt-label">💬 Промпт для ChatGPT / Claude</div><div class="prompt-text">«Я только что создал первый Android-проект на Kotlin. Объясни структуру папок простыми словами: что делает каждый файл, на что обращать внимание новичку? Отвечай кратко, без лишней теории.»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Измени текст «Hello World»</strong> на своё имя, используя ИИ для помощи.<div class="tip-block">💡 Не бойся ломать код. Это самый быстрый способ учиться. ИИ всегда поможет починить.</div></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="module" onclick="toggle(this)">
+        <div class="module-header">
+          <div class="module-num">02</div>
+          <div class="module-meta"><div class="module-title">Jetpack Compose — UI без боли</div><div class="module-sub">Современный способ делать интерфейсы · 4–5 дней</div></div>
+          <span class="module-badge badge-beginner">Основы</span>
+          <div class="module-arrow">▾</div>
+        </div>
+        <div class="module-body">
+          <ul class="steps-list">
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Что такое Compose:</strong> декларативный UI — ты описываешь КАК выглядит экран, а не КАК его нарисовать.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Попроси ИИ создать простой экран</strong><div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Создай экран профиля на Jetpack Compose. Нужно: круглый аватар (placeholder), имя пользователя, краткая bio, кнопка "Подписаться" в фиолетовом цвете. Используй Material3. Покажи весь код composable-функции.»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Изучи ключевые composables:</strong> Text, Button, Image, Column, Row, Box, Modifier. Для каждого попроси ИИ дать пример с объяснением.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Практика:</strong> список из 5 карточек фильмов.<div class="step-code">@Composable
+fun MovieCard(title: String, rating: Float) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        // Попроси ИИ заполнить содержимое!
+    }
+}</div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>State:</strong> создай счётчик лайков.<div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Напиши composable-функцию: кнопка с иконкой сердца и счётчик. При каждом нажатии счётчик увеличивается. Объясни зачем нужен remember и mutableStateOf.»</div></div></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="module" onclick="toggle(this)">
+        <div class="module-header">
+          <div class="module-num">03</div>
+          <div class="module-meta"><div class="module-title">Навигация и несколько экранов</div><div class="module-sub">Как пользователь перемещается по приложению · 3–4 дня</div></div>
+          <span class="module-badge badge-beginner">Навигация</span>
+          <div class="module-arrow">▾</div>
+        </div>
+        <div class="module-body">
+          <ul class="steps-list">
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Добавь Navigation Compose</strong> в build.gradle. Попроси ИИ дать актуальную строку зависимости.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Создай 3 экрана:</strong> Главный, Детали, Профиль.<div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Напиши навигацию для Android Compose приложения: 3 экрана — Home, Details (принимает itemId: Int), Profile. Нижняя навигационная панель с иконками. Material3. Полный рабочий код.»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Передача данных между экранами:</strong><div class="step-code">NavHost(navController, startDestination = "home") {
+    composable("home") { HomeScreen(navController) }
+    composable("details/{id}") { back ->
+        val id = back.arguments?.getString("id")
+        DetailsScreen(id)
+    }
+}</div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Мини-проект:</strong> Каталог книг с детальным экраном.<div class="tip-block">💡 Данные о книгах пока можно хранить прямо в коде как список data class объектов.</div></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="module" onclick="toggle(this)">
+        <div class="module-header">
+          <div class="module-num">04</div>
+          <div class="module-meta"><div class="module-title">Работа с данными и API</div><div class="module-sub">Загрузка реальных данных из интернета · 5–6 дней</div></div>
+          <span class="module-badge badge-practice">Практика</span>
+          <div class="module-arrow">▾</div>
+        </div>
+        <div class="module-body">
+          <ul class="steps-list">
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Retrofit</strong> — библиотека для работы с API. Попроси ИИ объяснить REST API простыми словами.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Подключись к бесплатному API:</strong> <code style="color:#67e8f9">jsonplaceholder.typicode.com</code><div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Напиши Android Compose приложение: загружает список постов с jsonplaceholder.typicode.com/posts, отображает в LazyColumn. Используй Retrofit + корутины + ViewModel. Покажи все файлы.»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Загрузка изображений — библиотека Coil:</strong><div class="step-code">AsyncImage(
+    model = "https://picsum.photos/200",
+    contentDescription = "Photo",
+    modifier = Modifier.size(100.dp).clip(CircleShape)
+)</div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Проект: Погодное приложение.</strong> API: OpenWeatherMap.<div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Создай погодное приложение на Android Compose. Поле ввода города, кнопка поиска. Загружает данные с OpenWeatherMap API. Отображает: температура, описание, иконка, влажность. Красивый UI в тёмных тонах.»</div></div></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="module" onclick="toggle(this)">
+        <div class="module-header">
+          <div class="module-num">05</div>
+          <div class="module-meta"><div class="module-title">Локальная база данных — Room</div><div class="module-sub">Сохранение данных на устройстве · 4–5 дней</div></div>
+          <span class="module-badge badge-practice">Данные</span>
+          <div class="module-arrow">▾</div>
+        </div>
+        <div class="module-body">
+          <ul class="steps-list">
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Room Database</strong> — три компонента: Entity (таблица), DAO (запросы), Database.<div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Объясни Room Database для новичка. Пример: Entity для заметки (id, title, text, timestamp), DAO с insert/delete/getAll, Database-класс. Как использовать в ViewModel с Flow?»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Проект: Приложение «Заметки».</strong><div class="step-code">@Entity
+data class Note(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val title: String,
+    val content: String,
+    val timestamp: Long = System.currentTimeMillis()
+)</div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Swipe to Delete:</strong> удаление заметки свайпом влево.<div class="tip-block">💡 Описывай ИИ не как это реализовать, а что должен чувствовать пользователь: «При свайпе влево карточка краснеет и исчезает».</div></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="module" onclick="toggle(this)">
+        <div class="module-header">
+          <div class="module-num">06</div>
+          <div class="module-meta"><div class="module-title">Firebase — бэкенд без кодинга</div><div class="module-sub">Авторизация · База данных в облаке · 5–6 дней</div></div>
+          <span class="module-badge badge-practice">Облако</span>
+          <div class="module-arrow">▾</div>
+        </div>
+        <div class="module-body">
+          <ul class="steps-list">
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Firebase Console:</strong> создай проект, скачай google-services.json в папку app/.<div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Покажи пошагово как подключить Firebase к Android-проекту на Kotlin. Какие зависимости добавить в build.gradle?»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Firebase Auth:</strong> регистрация и вход через email/пароль.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Firestore:</strong> облачная база данных в реальном времени.<div class="step-code">db.collection("notes")
+  .add(note)
+  .addOnSuccessListener { /* успех */ }
+  .addOnFailureListener { e -> /* ошибка */ }</div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Проект: Социальные заметки</strong> — данные синхронизируются между устройствами.<div class="tip-block">💡 Google Sign-In добавляется в 10 строк кода. Попроси ИИ — и у тебя есть полноценный вход через Google.</div></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="module" onclick="toggle(this)">
+        <div class="module-header">
+          <div class="module-num">07</div>
+          <div class="module-meta"><div class="module-title">Финальный проект и публикация</div><div class="module-sub">Сборка APK · Play Console · Портфолио · 5–7 дней</div></div>
+          <span class="module-badge badge-project">Финал 🚀</span>
+          <div class="module-arrow">▾</div>
+        </div>
+        <div class="module-body">
+          <ul class="steps-list">
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Выбор идеи для финального приложения.</strong><div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Мне нравится [тема]. Помоги описать MVP Android-приложения. Только самый необходимый функционал за 2 недели. Список экранов и ключевые фичи.»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Работа с ИИ над полным проектом.</strong> Описывай каждый экран по отдельности. Запускай, тестируй, итерируй.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Полировка UI.</strong><div class="prompt-block"><div class="prompt-label">💬 Промпт</div><div class="prompt-text">«Вот мой экран [код]. Сделай его визуально привлекательным: улучши типографику, добавь анимации, проверь отступы. Material Design 3.»</div></div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Сборка APK/AAB:</strong> Build → Generate Signed Bundle → создай keystore → подпиши.</div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Google Play Console:</strong> $25 единоразово, листинг, скриншоты, загрузка AAB.<div class="tip-block">💡 Начни с внутреннего тестирования — бесплатно, без ревью, поделись с друзьями сразу.</div></div></li>
+            <li class="step"><div class="step-dot"></div><div class="step-text"><strong>Портфолио на GitHub</strong> с красивым README и гифками. Это твоё доказательство навыков.</div></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="container">
+    <div class="section-label">// Дорожная карта</div>
+    <h2>4–6 недель до готового приложения</h2>
+    <p class="section-desc">Примерный темп при занятиях 1–2 часа в день.</p>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-week">Неделя 1</div><div class="tl-title">Установка и первый экран</div><div class="tl-desc">Android Studio работает, понимаешь структуру проекта, создаёшь простые UI-компоненты в Compose.</div></div>
+      <div class="tl-item"><div class="tl-week">Неделя 2</div><div class="tl-title">Многоэкранное приложение</div><div class="tl-desc">Навигация, списки, карточки, передача данных. Каталог книг или фильмов готов.</div></div>
+      <div class="tl-item"><div class="tl-week">Неделя 3</div><div class="tl-title">Реальные данные из API</div><div class="tl-desc">Retrofit настроен, загружаешь данные из интернета, отображаешь картинки. Погодное приложение работает.</div></div>
+      <div class="tl-item"><div class="tl-week">Неделя 4</div><div class="tl-title">База данных и Firebase</div><div class="tl-desc">Room сохраняет данные локально, Firebase обеспечивает авторизацию и облачное хранение.</div></div>
+      <div class="tl-item"><div class="tl-week">Недели 5–6</div><div class="tl-title">Финальный проект → Play Market</div><div class="tl-desc">Своя идея реализована, приложение опубликовано, портфолио на GitHub, ты — создатель приложений.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="container">
+    <div class="section-label">// Вдохновение</div>
+    <h2>Идеи для финального проекта</h2>
+    <p class="section-desc">Выбери что-то, что ты сам хотел бы использовать.</p>
+    <div class="project-card">
+      <h3 style="font-family:'Unbounded',sans-serif;font-size:1.1rem;margin-bottom:0.5rem">💡 Примеры реальных идей</h3>
+      <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Всё это реализуемо с ИИ-помощником за 2 недели:</p>
+      <div class="project-features">
+        <div class="pf"><span class="pf-icon">📚</span><span>Трекер прочитанных книг с рейтингами</span></div>
+        <div class="pf"><span class="pf-icon">💪</span><span>Дневник тренировок с прогрессом</span></div>
+        <div class="pf"><span class="pf-icon">💰</span><span>Учёт расходов с графиками</span></div>
+        <div class="pf"><span class="pf-icon">🍅</span><span>Помодоро-таймер с историей</span></div>
+        <div class="pf"><span class="pf-icon">🌿</span><span>Дневник привычек со streak</span></div>
+        <div class="pf"><span class="pf-icon">🎯</span><span>Менеджер целей с задачами</span></div>
+        <div class="pf"><span class="pf-icon">🍽️</span><span>Кулинарная книга с поиском</span></div>
+        <div class="pf"><span class="pf-icon">🗺️</span><span>Список мест «хочу посетить»</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Вайбкодинг · Android · 2025 — <span>Начни с промпта, закончи с приложением.</span></p>
+  <p style="margin-top:0.5rem;font-size:0.8rem">Не нужно знать всё. Нужно знать как спросить.</p>
+</footer>
+
+<script>
+  // ── Модули ──────────────────────────────────────────────
+  function toggle(el) {
+    const wasOpen = el.classList.contains('open');
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('open'));
+    if (!wasOpen) el.classList.add('open');
+  }
+
+  // ── Анимация при скролле ─────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.module, .vibe-card, .tl-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+
+  // ── PWA: Service Worker ──────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW зарегистрирован:', reg.scope))
+        .catch(err => console.log('SW ошибка:', err));
+    });
+  }
+
+  // ── PWA: Install Banner ──────────────────────────────────
+  let deferredPrompt = null;
+  const banner = document.getElementById('install-banner');
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Показываем баннер через 3 сек после открытия
+    setTimeout(() => banner.classList.add('show'), 3000);
+  });
+
+  function installApp() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(result => {
+      if (result.outcome === 'accepted') console.log('PWA установлен');
+      deferredPrompt = null;
+      banner.classList.remove('show');
+    });
+  }
+
+  function closeBanner() {
+    banner.classList.remove('show');
+    deferredPrompt = null;
+  }
+
+  // Скрываем баннер если уже установлено как PWA
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    banner.style.display = 'none';
+  }
+
+  // ── Офлайн-детектор ──────────────────────────────────────
+  const offlineBadge = document.getElementById('offline-badge');
+
+  function updateOnlineStatus() {
+    if (!navigator.onLine) {
+      offlineBadge.classList.add('show');
+    } else {
+      offlineBadge.classList.remove('show');
+    }
+  }
+
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+</script>
+
+</body>
+</html>
